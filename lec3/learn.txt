@@ -1,0 +1,15 @@
+# What is a smart pointer?
+A C++ class that acts as a wrapper around a raw pointer and provides automtic memory management. It ensures
+that the dynamically allocated memory is properly deallocated when it's no longer needed helping to proverent 
+memory leaks
+
+# What is a memory leak
+A memory leak occurs when a  program allocates memory dynamically usually on the heap but fails to release or 
+deallocate that memory  properly before the program terminates. As a result, the memory becomes in accessible
+and is effectively lost, leading to a gradual decreasein available memory over time.
+
+# What is a Shared pointer?
+A shared pointers keep track of the number of shared pointers pointing to the same object using a reference 
+count mechanism. When  a shared pointer is created, the reference count is incremented. When a shared pointer
+goes out of scope or is explicitly reset, the reference count is decremented. When the reference count drops
+to zero, the object's memory is deallocated.

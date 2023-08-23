@@ -1,0 +1,39 @@
+--------------------------------------------------------------------------------------------------------
+Program Specification
+--------------------------------------------------------------------------------------------------------
+
+In this assignment you will be writing a c++/SFML program which will read descriptions of shape from a 
+configuration file, and then drawing those shapes to the screen. Each shape will have a name, position, 
+speed , color, as well as properties unique to each shape type.
+
+You are also required to make these shapes "bounce" off the sides of the window which contains them. this
+means that if the shape's left side hists the left side of the window, it's x Speed reverses. if the top
+of the shape hists the top of the window, it's Y speed reverses. Similiarly, if it hits the right side or 
+bottom of the window. You can assume that all shapes will always be configured to start entirely within
+the window, and  you don't  have to worry about what happens if they start outside the window. Each 
+shapes's name should be drawn on the exact center of the shape in the given font size and color specified 
+in the file.
+
+Window W H
+
+Font F S R G B 
+ Font File, std::string(no spaces)
+ Font Size, int
+ Font Color (R, G, B) int, int, int
+
+Rectangle N X Y SX SY (R, G, B) W H
+    Shape Name          N          std::string
+    Initial Position    (X, Y)     float, float
+    Initial Speed       (SX, SY)   float, float
+    RGB Color           (R, G, B)  int, int, int
+    Size                (W, H)     float, float
+
+
+Circle N X Y SX SY R G B R
+    Shape Name          N          std::string
+    Initial Position    (X, Y)     float, float
+    Initial Speed       (SX, SY)   float, float
+    RGB Color           (R, G, B)  int, int, int
+    Radius               R         float
+
+ 
