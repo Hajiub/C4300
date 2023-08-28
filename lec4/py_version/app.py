@@ -1,95 +1,118 @@
 #!/usr/bin/env python3
 import pygame as pg
+import sys
 
+# Initialize pygame
+pg.init()
+
+# Create the game window
+win = pg.display.set_mode((800, 600))
+
+class Font:
+    def __init__(self, font_path, size, color) -> None:
+        self.color = color
+        self.font = pg.font.Font(font_path, size)
+        
+    def render(self, name):
+        return self.font.render(name, True, self.color)
+        
 class Shape:
-    def __init__(self, name, x, y, sx, sy, color):
+    def __init__(self, name, x, y, sx, sy, color, font) -> None:
         self.name = name
         self.x = x
         self.y = y
         self.sx = sx
         self.sy = sy
         self.color = color
+        self.font = font.font
+        self.text = font.render(name)
+
+        
 
 class Rect(Shape):
-    def __init__(self, name, x, y, sx, sy, color, w, h):
-        super().__init__(name, x, y, sx, sy, color)
-        self.width = w
-        self.height = h
-    
+    def __init__(self, name, x, y, sx, sy, color, w, h, font) -> None:
+        super().__init__(name, x, y, sx, sy, color, font)
+        self.w = w
+        self.h = h
+        self.surface = pg.Surface((self.w, self.h))
+        self.rect = self.surface.get_rect(center=(self.x, self.y))
+        
     def draw(self, win):
-        pg.draw.rect(win, self.color, (self.x, self.y, self.width, self.height))
-
+        self.text_pos = self.text.get_rect(center=(self.x, self.y))
+        pg.draw.rect(win, self.color, self.rect)
+        win.blit(self.text, self.text_pos) 
+        
     def update(self):
-        self.x += self.sx
-        self.y += self.sy
-        # Implement additional update logic if needed
+        
+        if self.rect.left <= 0 or self.rect.right >= 800:
+            self.sx *= -1
+        elif self.rect.top <= 0 or self.rect.bottom >= 600:
+            self.sy *= -1
+        self.rect.x += self.sx
+        self.rect.y += self.sy
 
 class Circle(Shape):
-    def __init__(self, name, x, y, sx, sy, color, r):
-        super().__init__(name, x, y, sx, sy, color)
+    def __init__(self, name, x, y, sx, sy, color, r, font) -> None:
+        super().__init__(name, x, y, sx, sy, color, font)
         self.r = r
         
     def draw(self, win):
+        self.text_pos = self.text.get_rect(center=(self.x, self.y))
         pg.draw.circle(win, self.color, (self.x, self.y), self.r)
-
+        win.blit(self.text, self.text_pos)
+       
     def update(self):
+        if self.x - self.r <= 0 or self.x + self.r >= 800:
+            self.sx *= -1
+        elif self.y - self.r <= 0 or self.y + self.r >= 600:
+            self.sy *= -1
         self.x += self.sx
         self.y += self.sy
-        # Implement additional update logic if needed
 
-class Engine:
-    def __init__(self, width: int, height: int, title: str) -> None:
-        self.width = width
-        self.height = height
-        self.title = title
-        self.window = pg.display.set_mode((self.width, self.height))
-        pg.display.set_caption(self.title)
+rects = []
+circles = []
 
-        self.shapes = []  # List to hold all shapes in the engine
+def load_config(filename):
+    with open(filename, 'r') as file:
+        lines = file.readlines()
+        
+        for line in lines:
+            data = line.split()
+            shape_type = data[0].lower()
 
-    def initialize(self):
-        pg.init()
+            if shape_type == 'font':
+                font = Font(data[1], int(data[2]), tuple(map(int, data[3:6])))
+            
+            elif shape_type == 'circle':
+                circles.append(Circle(data[1], int(data[2]), int(data[3]), float(data[4]), float(data[5]),
+                                      tuple(map(int, data[6:9])), int(data[9]), font))
+                
+            elif shape_type == 'rectangle':
+                rects.append(Rect(name=data[1], x=int(data[2]), y=int(data[3]), sx=int(data[4]), sy=int(data[5]),
+                                  color=tuple(map(int, data[6:9])), w=int(data[9]), h=int(data[10]), font=font))
 
-    def handle_input(self):
+clock = pg.time.Clock()
+
+def main():
+    load_config('config.txt')
+    
+    running = True
+    while running:
+        win.fill((255, 255, 255))  # Clear the screen
+
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                self.quit()
+                running = False
 
-    def update(self, delta_time):
-        for shape in self.shapes:
-            shape.update()
-
-    def render(self):
-        self.window.fill((0, 0, 0))
-        for shape in self.shapes:
-            shape.draw(self.window)
+        for rect in rects:
+            rect.update()
+            rect.draw(win)
+        # for circle in circles:
+        #     circle.update()
+        #     circle.draw(win)
         pg.display.flip()
 
-    def add_shape(self, shape):
-        self.shapes.append(shape)
+    pg.quit()
 
-    def run(self):
-        self.initialize()
-        clock = pg.time.Clock()
-        running = True
-        while running:
-            delta_time = clock.tick(60) / 1000.0  
-            self.handle_input()
-            self.update(delta_time)
-            self.render()
-
-    def quit(self):
-        pg.quit()
-        quit()
-
-if __name__ == "__main__":
-    engine = Engine(800, 600, "Pygame Engine Example")
-    
-    # Create and add shapes to the engine
-    rect = Rect("Rectangle", 100, 100, 1, 0, (255, 0, 0), 100, 50)
-    circle = Circle("Circle", 300, 300, 0, 1, (0, 0, 255), 30)
-
-    engine.add_shape(rect)
-    engine.add_shape(circle)
-
-    engine.run()
+if __name__ == '__main__':
+    main()
