@@ -1,7 +1,44 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 
+void loadConfig(const std::string& filname)
+{
+    std::ifstream file(filname);
+    if (!file.is_open())
+    {
+        std::cout << "Failed to open the file." << std::endl;
+        return;
+    }
+
+
+    std::string line;
+    while (std::getline(file, line))
+    {
+        std::istringstream iss(line);
+        std::string command;
+        iss >> command;
+
+        if (command == "window")
+        {
+         
+        }
+        else if (command == "font")
+        {
+        }
+        else if (command == "circle")
+        {
+         
+        }
+        else if (command == "rectangle")
+        {
+         
+        }
+    }
+}
 int main() {
     sf::RenderWindow window(sf::VideoMode(800, 600), "Moving Shape in SFML");
     
@@ -14,6 +51,7 @@ int main() {
     sf::RectangleShape rect(sf::Vector2f(120, 50));
     rect.setFillColor(sf::Color(255, 0, 0));
     rect.setPosition(100, 200);
+
 
     // Font
     sf::Font font;
