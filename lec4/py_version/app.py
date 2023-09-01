@@ -2,9 +2,18 @@
 import pygame as pg
 import csv
 
+
 # Todo Handle the text!
+class Font:
+    def __init__(self):
+        self.font_color = (255, 255, 255)
+    
+    def set_font(self, font_path, font_size, font_color):
+        self.font_color = font_color
+        self.ft = pg.font.Font(None, font_size)
+
 class Shape:
-    def __init__(self, name, x, y, sx, sy, color) -> None:
+    def __init__(self, name, x, y, sx, sy, color, font) -> None:
         self.name = name
         self.x = x
         self.y = y
@@ -12,45 +21,49 @@ class Shape:
         self.sy = sy
         self.color = color
         
+        self.text  = font.ft.render(str(name), True, font.font_color)
+        
+        
 
         
 
 class Rect(Shape):
-    def __init__(self, name, x, y, sx, sy, color, w, h) -> None:
-        super().__init__(name, x, y, sx, sy, color)
+    def __init__(self, name, x, y, sx, sy, color, w, h, font) -> None:
+        super().__init__(name, x, y, sx, sy, color, font)
         self.w = w
         self.h = h
         self.surface = pg.Surface((self.w, self.h))
         self.rect = self.surface.get_rect(center=(self.x, self.y))
         
     def draw(self, win):
-        #self.text_pos = self.text.get_rect(center=(self.x, self.y))
+        self.text_pos = self.text.get_rect(center=self.rect.center)      
         pg.draw.rect(win, self.color, self.rect)
-        #win.blit(self.text, self.text_pos) 
+        win.blit(self.text, self.text_pos) 
         
-    def update(self):
+    def update(self, win_width, win_height):
         
-        if self.rect.left <= 0 or self.rect.right >= 800:
+        if self.rect.left <= 0 or self.rect.right >= win_width:
             self.sx *= -1
-        elif self.rect.top <= 0 or self.rect.bottom >= 600:
+        elif self.rect.top <= 0 or self.rect.bottom >= win_height:
             self.sy *= -1
         self.rect.x += self.sx
         self.rect.y += self.sy
 
 class Circle(Shape):
-    def __init__(self, name, x, y, sx, sy, color, r) -> None:
-        super().__init__(name, x, y, sx, sy, color)
+    def __init__(self, name, x, y, sx, sy, color, r, font) -> None:
+        super().__init__(name, x, y, sx, sy, color, font)
         self.r = r
         
     def draw(self, win):
-        #self.text_pos = self.text.get_rect(center=(self.x, self.y))
+        self.text_pos = self.text.get_rect(center=(self.x, self.y))
+  
         pg.draw.circle(win, self.color, (self.x, self.y), self.r)
-        #win.blit(self.text, self.text_pos)
+        win.blit(self.text, self.text_pos)
        
-    def update(self):
-        if self.x - self.r <= 0 or self.x + self.r >= 800:
+    def update(self, win_width, win_height):
+        if self.x - self.r <= 0 or self.x + self.r >= win_width:
             self.sx *= -1
-        elif self.y - self.r <= 0 or self.y + self.r >= 600:
+        elif self.y - self.r <= 0 or self.y + self.r >= win_height:
             self.sy *= -1
         self.x += self.sx
         self.y += self.sy
@@ -79,7 +92,7 @@ class Engine:
 
     def _update(self):
         for shape in self.shapes:
-            shape.update()
+            shape.update(self.width, self.height)
 
     def _render(self):
         self.window.fill((255, 255, 255))
@@ -92,6 +105,8 @@ class Engine:
    
 shapes = []
 if __name__ == "__main__":
+    font = Font()
+    
     pg.init()
     with open("config.csv", "r") as f:
         line = csv.reader(f)
@@ -100,11 +115,11 @@ if __name__ == "__main__":
             if command == 'window':
                 width, height = int(l[1]), int(l[2])
             elif command == "font":
-                print(l[1], l[2], (l[3], l[4], l[5]))
+                font.set_font(str(l[1]), int(l[2]), (int(l[3]), int(l[4]), int(l[5])))
             elif command == "circle":
-                shapes.append(Circle(l[1], int(l[2]), int(l[3]), float(l[4]), float(l[5]), (int(l[6]), int(l[7]), int(l[8])), int(l[9])))
+                shapes.append(Circle(l[1], int(l[2]), int(l[3]), float(l[4]), float(l[5]), (int(l[6]), int(l[7]), int(l[8])), int(l[9]), font))
             elif command == "rectangle":
-                shapes.append(Rect(l[1], int(l[2]), int(l[3]), float(l[4]), float(l[5]), (int(l[6]), int(l[7]), int(l[8])), int( l[9]), int(l[10])))
+                shapes.append(Rect(l[1], int(l[2]), int(l[3]), float(l[4]), float(l[5]), (int(l[6]), int(l[7]), int(l[8])), int( l[9]), int(l[10]), font))
 
     
     eng = Engine(width, height)
