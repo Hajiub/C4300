@@ -1,293 +1,159 @@
 #include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
-#include <SFML/System.hpp>
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <sstream>
+#include <string>
 
 
-// make a text class that will be drawed and updated and each shape gotta have one
-class FontClass {
-private:
-    std::string fontName;
-    int fontSize;
-    sf::Color fontColor;
-    sf::Font font;
-    
-public:
-    FontClass() : fontSize(0), fontColor(sf::Color::Black) {
-    }
-
-    void setFont(const std::string& name, int size, int r, int g, int b) {
-        fontName = name;
-        fontSize = size;
-        fontColor = sf::Color(r, g, b);
-
-        if (!font.loadFromFile(fontName)) {
-            std::cout << "Cannot load " << fontName << std::endl;
-        }
-    }
-
-    sf::Font& getFont() {
-        return font;
-    }
-
-    const sf::Color& getColor() const {
-        return fontColor;
-    }
-
-    int getFontSize() const {
-        return fontSize;
-    }
-};
-
-
-
-// Shape
-class Shape {
+class Shape 
+{
 protected:
     std::string name;
-    int x, y;
-    float sx;
-    float sy;
-    int R, G, B;
-    FontClass font;
-    sf::Text text;
-
+    int  R, G, B;
+    float  x, y, sx, sy;
 public:
-    Shape(std::string name, int x, int y, float sx, float sy, int r, int g, int b, FontClass &font)
+    Shape(const std::string& name ,float x, float y, float sx, float sy, int R, int G, int B)
     : name(name)
     , x(x)
     , y(y)
     , sx(sx)
     , sy(sy)
-    , R(r), G(g), B(b)
-    , font(font)
+    , R(R)
+    , G(G)
+    , B(B)
     {
-        text.setFont(font.getFont());
-        text.setFillColor(font.getColor());
-        text.setCharacterSize(font.getFontSize());
-    }
-    
-};
-
-
-// circle
-class Circle : public Shape 
-{
-private:
-    int radius;
-    sf::CircleShape circle;
-    sf::Vector2f cirlceCenter;
-    sf::FloatRect textBounds;
-
-public:
-    Circle(const std::string& name, int x, int y, float sx, float sy, int r, int g, int b, int radius, FontClass &font)
-    : Shape(name, x, y, sx, sy, r, g, b, font)
-    , radius(radius)
-    {
-        circle.setRadius(radius);
-        circle.setPosition(x, y);
-        circle.setFillColor(sf::Color(R, G, B));
-        text.setString(name);
-        
-    }
-    void update()
-    {
-        cirlceCenter = circle.getPosition() + sf::Vector2f(circle.getRadius(), circle.getRadius());
-        textBounds   =  text.getLocalBounds();
-        text.setOrigin(textBounds.left + textBounds.width / 2.0f, textBounds.top + textBounds.height / 2.0f);
-        text.setPosition(cirlceCenter);
-        // handle this shit later 
-        if (circle.getPosition().y < 0 | circle.getPosition().y + 2 * (circle.getRadius()) > 600 )
-        {
-            
-            sy *= -1;
-        }
-        else if (circle.getPosition().x < 0 | circle.getPosition().x + 2 * ( circle.getRadius()) > 800)
-        {
-            
-            sx *= - 1;
-        }
-        circle.move(sx, sy);
-    }
-    void draw(sf::RenderWindow &win)
-    {
-        win.draw(circle);
-        win.draw(text);
     }
 };
-
-// rect
 class Rect : public Shape 
 {
 private:
-    int width;
-    int hieght;
+    int W, H;
     sf::RectangleShape rect;
-    sf::Vector2f rectangleCenter;
-    sf::FloatRect textBounds;
 public:
-    Rect(const std::string& name, int x, int y, float sx, float sy, int r, int g, int b, int w, int h, FontClass &font)
-    : Shape(name, x, y, sx, sy, r, g, b, font)
-    , width(w)
-    , hieght(h)
+    Rect(const std::string& name ,float x, float y, float sx, float sy, int R, int G, int B, float w, float h)
+    : Shape(name, x, y, sx, sy, R, G, B)
+    , W(w)
+    , H(h)
     {
-        rect.setSize(sf::Vector2f(width, hieght));
-        rect.setPosition(x, y);
+        rect.setSize(sf::Vector2f(w, h));
         rect.setFillColor(sf::Color(R, G, B));
-        text.setString(name);
-
+        rect.setPosition(x, y);
     }
-    
-    void update()
+    void draw(sf::RenderWindow & win)
     {
-        sf::Vector2f rectangleCenter = rect.getPosition() + 0.5f * rect.getSize();
-        sf::FloatRect textBounds = text.getLocalBounds();
-        text.setOrigin(textBounds.left + textBounds.width / 2.0f, textBounds.top + textBounds.height / 2.0f);
-        text.setPosition(rectangleCenter);
-
-        if (rect.getPosition().x < 0 | rect.getPosition().x + rect.getSize().x > 800)
-        {
-            sx *= - 1;
-        }
-        else if(rect.getPosition().y < 0 | rect.getPosition().y + rect.getSize().y > 600)
-        {
-            sy *= - 1;
-        }
+        
+        win.draw(rect);
+    }
+    void update(int win_width, int win_heigth)
+    {
         rect.move(sx, sy);
     }
-    void draw(sf::RenderWindow& win)
-    {
-        win.draw(rect);
-        win.draw(text);
-    }
 };
 
-
-// Game Engine
-class GameEngine {
-public:
-    GameEngine()
-    : width(600), height(600)
-    {
-        std::string title = "C4003";
-        window.create(sf::VideoMode(width, height), title);
-    }
-
-    void run()
-    {
-        sf::Clock clock;
-        while(window.isOpen())
-        {
-            processInput();
-            update();
-            render();
-
-        }
-    }
-    void set_circle(Circle& cirlce)
-    {
-        circles.push_back(cirlce);
-    }
-
-    void set_rectangle(Rect & rectangle)
-    {
-        rects.push_back(rectangle);
-    }
-    void SetWindowSize(int w, int h)
-    {
-        window.setSize(sf::Vector2u(w, h));
-    }
-private:
-    int width;
-    int height;
-    
-    std::vector <Circle> circles;
-    std::vector <Rect> rects;
-    sf::RenderWindow window;
-
-    void processInput()
-    {
-        sf::Event event;
-        while (window.pollEvent(event))
-        {
-            if (event.type == sf::Event::Closed)
-            window.close();
-        }
-    }
-
-    void update()
-    {
-         for (auto &a : circles)
-        {
-            a.update();
-        }
-        for(auto &a : rects)
-        {
-            a.update();   
-        }
-    }
-
-    void render()
-    {
-        window.clear(sf::Color::White);
-        // Render game objects here
-        for (auto &a : circles)
-        {
-            a.draw(window);   
-        }
-        for(auto &a : rects)
-        {
-            a.draw(window);   
-        }
-        window.display();
-    }
-};
-int main(int argc, char* argv[])
+class Circle : Shape 
 {
-    int w, h;
-    GameEngine game;
-    FontClass font;
-
-    std::ifstream file("config.txt");
-    if (!file.is_open())
+private: 
+    float radius;
+    sf::CircleShape cirlce;
+public:
+    Circle(const std::string& name ,float x, float y, float sx, float sy, int R, int G, int B, float raduis)
+    : Shape(name, x, y, sx, sy, R, G, B)
+    , radius(radius)
     {
-        std::cout << "Failed to open the file." << std::endl;
-        return -1;
+        cirlce.setRadius(raduis);
+        cirlce.setFillColor(sf::Color(R, G, B));
+        cirlce.setPosition(x, y);
     }
-    std::string line;
-    while (std::getline(file, line))
+    void draw(sf::RenderWindow & win)
     {
-        std::istringstream iss(line);
-        std::string command;
-        iss >> command;
+        win.draw(cirlce);
+    }
+    void update(int win_width, int win_heigth)
+    {
+        if(x <= 0 || x + radius >= win_width)
+        {
+            std::cout << "do something" << std::endl;
+        }
+        else if (y <= 0 || y + radius >= win_heigth)
+        {
+            std::cout << "do something again" << std::endl;
+        }
+        cirlce.move(sf::Vector2f(sx, sy));
+    }
+};
 
+
+int main() {
+    // Read the config file
+    std::ifstream configFile("config.txt");
+    if (!configFile.is_open()) {
+        std::cerr << "Failed to open config.txt" << std::endl;
+        return 1;
+    }
+
+    int width = 0, height = 0;
+    std::string name;
+    float x, y, sx, sy, w, h, radius;
+    int R, G, B;
+    std::vector <Circle> cirlces;
+    std::vector <Rect> rects;
+
+    std::string line;
+    std::string command;
+    while (std::getline(configFile, line)) {
+        std::istringstream sss(line);
+        sss >> command;
         if (command == "window")
         {
-            iss >> w >> h;
-        }
-        else if (command == "font")
-        {
-            std::string fontPath;
-            int size, r, g, b;
-            iss >> fontPath >> size >> r >> g >> b;
-            font.setFont(fontPath, size, r, g, b);
+            sss >> width >> height;
         }
         else if (command == "circle")
         {
-            Circle circle("CBlue", 200, 200, 0.02, 0.04, 0, 0, 255, 100, font);
-            game.set_circle(circle);
+            sss >> name >> x >> y >> sx >> sy >> R >> G >> B >> radius;
+            Circle circle(name, x, y, sx, sy, R, G, B, radius);
+            cirlces.push_back(circle);
         }
         else if (command == "rectangle")
         {
-            Rect rect("RRed", 200, 200, 0.1, 0.15, 255, 0, 0, 50, 25, font);
-            game.set_rectangle(rect);        
+            sss >> name >> x >> y >> sx >> sy >> R >> G >> B >> w >> h;
+            Rect rect(name, x, y, sx, sy, R, G, B, w, h);
+            rects.push_back(rect);
         }
-    }   
-    game.SetWindowSize(w, h);
-    game.run();
+    }
+
+    configFile.close();
+   
+    // Create an SFML window
+    sf::RenderWindow window(sf::VideoMode(width, height), "SFML Example");
+    
+    while (window.isOpen()) 
+    {
+        
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                window.close();
+            }
+        }
+
+        // Clear the window
+        window.clear(sf::Color::White);
+        for (auto &rec : rects)
+        {
+            rec.update(width, height);
+            rec.draw(window);
+        }
+        for(auto &cir : cirlces)
+        {
+            cir.update(width, height);
+            cir.draw(window);
+        }
+        
+        // Draw your game objects here
+        
+        // Display the contents of the window
+        window.display();
+    }
+
     return 0;
- 
 }
